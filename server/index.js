@@ -1,5 +1,6 @@
 const express = require('express');
 const path = require('path');
+const cors = require("cors")
 require("dotenv").config({ path: path.resolve(__dirname, "./.env") });
 // console.log(process.env.NODE_ENV);
 const port = process.env.PORT || 5000
@@ -12,8 +13,11 @@ const connectDB = require('./config/db');
 const app = express();
 
 
+
 //COnnec to mongoDB
 connectDB();
+
+app.use(cors());
 
 app.use('/graphql', graphqlHTTP({
     schema,
