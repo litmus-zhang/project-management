@@ -1,56 +1,55 @@
 import React, { useState } from 'react'
-import { FaUser } from 'react-icons/fa'
-import { useMutation } from '@apollo/client'
-import { ADD_CLIENT } from '../mutations/clientMutation'
+import { FaList } from 'react-icons/fa'
+import { useMutation, useQuery } from '@apollo/client'
 import { GET_CLIENTS } from '../queries/clientQueries'
+import { GET_PROJECTS } from '../queries/projectQueries'
+import Spinner from './Spinner'
 
-export default function AddClientModal()
+
+export default function AddProjectModal()
 {
     const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [phone, setPhone] = useState('');
+    const [descriptio, setdescriptio] = useState('');
+    const [clientId, setclientId] = useState('');
+    const [status, setStatus] = useState('new');
 
-    const [addClient] = useMutation(ADD_CLIENT, {
-        variables: { name, email, phone },
-        update(cache, { data: { addClient } })
-        {
-            const { clients } = cache.readQuery({ query: GET_CLIENTS });
-            cache.writeQuery({
-                query: GET_CLIENTS,
-                data: { clients: [...clients, addClient] }
-            })
-        }
-    })
-
-    const onSubmit = (e) =>
-    { 
-        e.preventDefault();
-        // console.log(name, email, phone);
-        if(!name && !email && !phone)
-        {
-           return alert('Please fill all the fields');
-        }
-        addClient(name, email, phone);
-        setName('');
-        setEmail('');
-        setPhone('');
+  //Get Clients for dropdown
+  const {loading, error, data} =  useQuery(GET_CLIENTS);
+  const onSubmit = (e) =>
+  {
+    e.preventDefault();
+    if (name === `` || descriptio === `` || status === ``)
+    {
+      return alert('Please fill all the fields');
     }
-  return (
-      <>
+    console.log(name, descriptio, clientId, status);
+    setName('');
+    setdescriptio('');
+    setclientId('');
+    setStatus('new');
+    }
 
-<button type="button" className="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addClientModal">
+  if (loading) return null;
+  if (error) return "Something went wrong";
+  return (
+    <>
+      {
+        !loading && !error && (
+          
+          <>
+          <button type="button" className="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#addProjectModal">
               <div  className='d-flex align-items-center'>
-                  <FaUser className='icon' />  
-                  <div>Add New Client</div>
+                  <FaList className='icon' />  
+                  <div>New Project</div>
   </div>
 </button>
 
 
-<div className="modal fade" id="addClientModal" aria-labelledby="addClientModalLabel" aria-hidden="true">
+<div className="modal fade" id="addProjectModal" aria-labelledby="addProjectModalLabel" aria-hidden="true">
   <div className="modal-dialog">
     <div className="modal-content">
       <div className="modal-header">
-                          <h5 className="modal-title" id="addClientModalLabel">Add Client
+                          <h5 className="modal-title" id="addProjectModalLabel">Add New Project
                           </h5>
         <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -67,29 +66,41 @@ export default function AddClientModal()
                                   />
                               </div>                 
                               <div className='mb-3'>
-                                  <label className='form-label'>Email</label>
-                                  <input
-                                      type="email"
+                                  <label className='form-label'>description</label>
+                                  <textarea
                                       className='form-control'
-                                      id="email"
-                                      value={email}
-                                      onChange={(e) => setEmail(e.target.value)}
+                                      id="descriptio"
+                                      value={descriptio}
+                                      onChange={(e) => setdescriptio(e.target.value)}
                                   />
                               </div>                 
                               <div className='mb-3'>
-                                  <label className='form-label'>Phone</label>
-                                  <input
-                                      type="text"
-                                      className='form-control'
-                                      id="phone"
-                                      value={phone}
-                                      onChange={(e) => setPhone(e.target.value)}
-                                  />
+                                  <label className='form-label'>Status</label>
+                  <select id="status" className='form-select' value={status}
+                  onChange={(e) => setStatus(e.target.value)}>
+                  
+                    <option value="new">Not Started</option>
+                    <option value="progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                                 </select>
+                              </div>
+                              <div className='mb-3'>
+                                  <label className='form-label'>Client</label>
+                  <select id="clientId" className='form-select' value={clientId}
+                  onChange={(e) => setclientId(e.target.value)}>
+                  
+                    <option value="">Select Client</option>
+                          {
+                            data.clients.map(client => (
+                              <option key={client.id} value={client.id}>{client.name}</option>
+                            ))
+                      }
+                                 </select>
                               </div>
                               <button
                                   type='submit'
                                   data-bs-dismiss="modal"
-                                  className='btn btn-secondary'>
+                                  className='btn btn-primary'>
                                     Submit
                               </button>
         </form>
@@ -98,6 +109,11 @@ export default function AddClientModal()
     </div>
   </div>
 </div>
+          </>
+        )
+      }
+
+
       </>
   )
 }
