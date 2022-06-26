@@ -4,25 +4,39 @@ import { useMutation, useQuery } from '@apollo/client'
 import { GET_CLIENTS } from '../queries/clientQueries'
 import { GET_PROJECTS } from '../queries/projectQueries'
 import Spinner from './Spinner'
+import { ADD_PROJECT } from '../mutations/projectMutation'
 
 
 export default function AddProjectModal()
 {
     const [name, setName] = useState('');
-    const [descriptio, setdescriptio] = useState('');
+    const [description, setdescriptio] = useState('');
     const [clientId, setclientId] = useState('');
     const [status, setStatus] = useState('new');
+
+  const [addProject] = useMutation(ADD_PROJECT, {
+    variables: { name, description, clientId, status },
+    update(cache, { data: { addProject } })
+    {
+      const { projects } = cache.readQuery({ query: GET_PROJECTS });
+      cache.writeQuery({
+        query: GET_PROJECTS,
+        data: { projects: [...projects, addProject] }
+      })
+    }
+  })
 
   //Get Clients for dropdown
   const {loading, error, data} =  useQuery(GET_CLIENTS);
   const onSubmit = (e) =>
   {
     e.preventDefault();
-    if (name === `` || descriptio === `` || status === ``)
+    if (name === `` || description === `` || status === ``)
     {
       return alert('Please fill all the fields');
     }
-    console.log(name, descriptio, clientId, status);
+    // console.log(name, description, clientId, status);
+    addProject(name, description, clientId, status);
     setName('');
     setdescriptio('');
     setclientId('');
@@ -69,8 +83,8 @@ export default function AddProjectModal()
                                   <label className='form-label'>description</label>
                                   <textarea
                                       className='form-control'
-                                      id="descriptio"
-                                      value={descriptio}
+                                      id="description"
+                                      value={description}
                                       onChange={(e) => setdescriptio(e.target.value)}
                                   />
                               </div>                 
